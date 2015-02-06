@@ -47,6 +47,7 @@ angular.module('starter.controllers', ['ngSanitize'])
     console.log('placeUser called')
     // get position if $rootScope.pos hasn't been set:
     if (!$rootScope.pos) {
+      console.log('no $rootScope.pos found');
       navigator.geolocation.getCurrentPosition(function (pos) {
         $rootScope.pos = pos;
         // format the position for the marker
@@ -79,9 +80,9 @@ angular.module('starter.controllers', ['ngSanitize'])
       $scope.userMarker.setPosition(new google.maps.LatLng(pos.coords.latitude, pos.coords.longitude));
     });
     // Check for a stop nearby when you're within a jaunt started
-    // if ($scope.jauntStarted) {
-      $scope.checkForStop();  
-    // }
+    if ($scope.jauntStarted) {
+      $scope.checkForStop();
+    }
   };
 
       // console.log('location updated: ' + $rootScope.pos);
@@ -146,8 +147,6 @@ angular.module('starter.controllers', ['ngSanitize'])
 
 
     // window.location = 'http://localhost:5000/#/tab/jaunts/'+$scope.selectedJaunt._id+'/54cac95c4e0a367a35de5c80';
-
-
   };
 
 
@@ -622,7 +621,8 @@ angular.module('starter.controllers', ['ngSanitize'])
 
 
 
-.controller('PlaceDetailCtrl', function($scope, $stateParams, Jaunts, $rootScope, $sce) {
+
+.controller('PlaceDetailCtrl', function($scope, $stateParams, Jaunts, $rootScope) {
 
   $scope.stop = Jaunts.getStop($rootScope.jaunts, $stateParams.jauntId, $stateParams.placeId);
   console.log('$scope.stop.audioUrl');
