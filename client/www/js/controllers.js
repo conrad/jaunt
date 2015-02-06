@@ -47,6 +47,7 @@ angular.module('starter.controllers', [])
     console.log('placeUser called')
     // get position if $rootScope.pos hasn't been set:
     if (!$rootScope.pos) {
+      console.log('no $rootScope.pos found');
       navigator.geolocation.getCurrentPosition(function (pos) {
         $rootScope.pos = pos;
         // format the position for the marker
@@ -79,7 +80,9 @@ angular.module('starter.controllers', [])
       $scope.userMarker.setPosition(new google.maps.LatLng(pos.coords.latitude, pos.coords.longitude));
     });
     // Check for a stop nearby when you're within a jaunt started
-    // $scope.checkForStop();
+    if ($scope.jauntStarted) {
+      $scope.checkForStop();
+    }
   };
 
       // console.log('location updated: ' + $rootScope.pos);
@@ -87,11 +90,11 @@ angular.module('starter.controllers', [])
     // console.log($rootScope.pos);
     var userX = $rootScope.pos.D;    // coords.longitude;
     var userY = $rootScope.pos.k;    // coords.latitude;
-    // console.log('user location:', userX, userY);
-    // $scope.markers
-    for (var i = 0; i < $scope.markers.length; i++) {
-      var stopX = $scope.markers[i].position.D;
-      var stopY = $scope.markers[i].position.k;
+    var stopovers = $scope.selectedJaunt.stops;
+
+    for (var i = 0; i < stopovers.length; i++) {
+      var stopX = stopovers[i].location.coordinates[0];
+      var stopY = stopovers[i].location.coordinates[1];
       // console.log('stopover location:', stopX, stopY);
 
       var degreeDist = Math.sqrt( Math.pow( (userX - stopX), 2 ) + Math.pow( (userY - stopY), 2) );
@@ -101,8 +104,11 @@ angular.module('starter.controllers', [])
       console.log('distance in meters:', meterDist);
 
       if (meterDist < 40) {
+        console.log("You've reached", stopovers[i].name);
 
         // TRIGGER NAVIGATE TO PLACE DETAIL PAGE WHEN WITHIN CERTAIN DISTANCE
+
+        window.location = 'http://localhost:5000/#/tab/jaunts/'+stopovers[i].jauntID+'/'+stopovers[i]._id;
       }
     }
   };
@@ -141,6 +147,9 @@ angular.module('starter.controllers', [])
     // console.log(Jaunts);          // refers to service with a bunch of methods
     // console.log($scope.jaunts);   // array of jaunts - clear this.
     // console.log($scope.markers);
+
+
+    // window.location = 'http://localhost:5000/#/tab/jaunts/'+$scope.selectedJaunt._id+'/54cac95c4e0a367a35de5c80';
 
 
   };
@@ -621,268 +630,11 @@ angular.module('starter.controllers', [])
 
 
 
-
-
-
-
-
+//////////  NAVIGATION PAGE CONTROLLER
 
 .controller('NavigateCtrl', function($scope, $ionicLoading, $ionicActionSheet, $timeout, $ionicModal, Jaunts, $q, $rootScope) {
 
-  // $scope.initialize = function () {
-
-  //   // $scope.createMap($rootScope.latLng, 17);
-  //   console.log($scope.map);
-  //   $scope.map = null;
-
-  //       // $scope.centerOnMe();     // This shouldn't be needed 
-
-  //       $scope.createMap($rootScope.latLng, 17);
-
-  //       $scope.selectedJaunt = $rootScope.selectedJaunt;
-  //       $scope.userMarker = {};
-  //       $scope.watchId = null;
-  //       $scope.polys = [];
-  //       $scope.markers = [];
-  //       $scope.stopovers = [];
-  //       $scope.infowindows = [];
-  //       $scope.index = 0;
-  //       $scope.query = {};  //user queries
-  //       $scope.queryObj = {}; //sent to the db
-
-  //       $scope.placeUser();
-
-  //       // $scope.centerOnMe()
-  //       // .then(function (pos) {
-  //       //   $scope.center = $scope.map.getCenter();
-  //       //   $scope.show(0);
-  //       // });
-  //       // $scope.placeUser();
-  //       console.log($scope.selectedJaunt)
-
-
-  //     // });
-  //   } else {
-
-  //     $scope.selectedJaunt = $rootScope.selectedJaunt;
-  //     console.log('latLng found in Navigate');
-  //     $scope.createMap($rootScope.latLng, 17);
-  //     $scope.userMarker = {};
-  //     $scope.watchId = null;
-  //     $scope.polys = [];
-  //     $scope.markers = [];
-  //     $scope.stopovers = [];
-  //     $scope.infowindows = [];
-  //     $scope.index = 0;
-  //     $scope.query = {};  //user queries
-  //     $scope.queryObj = {}; //sent to the db
-
-
-  //     $scope.placeUser();
-
-  //     // $scope.centerOnMe()
-  //     // .then(function (pos) {
-  //     //   $scope.center = $scope.map.getCenter();
-  //     //   $scope.show(0);
-  //     // });
-  //     // $scope.placeUser();
-
-
-  //   }
-
-  //   console.log($rootScope.jaunts);
-  // };
-
-  $scope.createMap = function(position, zoom) {
-
-    console.log('create map called');
-    var mapOptions = {
-      center: new google.maps.LatLng(37.7833, -122.4167),
-      zoom: 17,
-      mapTypeId: google.maps.MapTypeId.ROADMAP,
-      draggableCursor:'grab',
-      mapTypeControl: false,
-      panControl: false,
-      zoomControl: false,
-      streetViewControl: false,
-      styles: [{"featureType":"landscape.man_made","elementType":"geometry","stylers":[{"color":"#f7f1df"}]},{"featureType":"landscape.natural","elementType":"geometry","stylers":[{"color":"#d0e3b4"}]},{"featureType":"landscape.natural.terrain","elementType":"geometry","stylers":[{"visibility":"off"}]},{"featureType":"poi","elementType":"labels","stylers":[{"visibility":"off"}]},{"featureType":"poi.business","elementType":"all","stylers":[{"visibility":"off"}]},{"featureType":"poi.medical","elementType":"geometry","stylers":[{"color":"#fbd3da"}]},{"featureType":"poi.park","elementType":"geometry","stylers":[{"color":"#bde6ab"}]},{"featureType":"road","elementType":"geometry.stroke","stylers":[{"visibility":"off"}]},{"featureType":"road","elementType":"labels","stylers":[{"visibility":"off"}]},{"featureType":"road.highway","elementType":"geometry.fill","stylers":[{"color":"#ffe15f"}]},{"featureType":"road.highway","elementType":"geometry.stroke","stylers":[{"color":"#efd151"}]},{"featureType":"road.arterial","elementType":"geometry.fill","stylers":[{"color":"#ffffff"}]},{"featureType":"road.local","elementType":"geometry.fill","stylers":[{"color":"black"}]},{"featureType":"transit.station.airport","elementType":"geometry.fill","stylers":[{"color":"#cfb2db"}]},{"featureType":"water","elementType":"geometry","stylers":[{"color":"#a2daf2"}]}]
-    };
-
-    $scope.map = new google.maps.Map(document.getElementById("map"), mapOptions);
-
-    $scope.userMarker = {};
-    $scope.watchId = null;
-    $scope.polys = [];
-    $scope.markers = [];
-    $scope.stopovers = [];
-    $scope.infowindows = [];
-    $scope.index = 0;
-    $scope.query = {};  //user queries
-    $scope.queryObj = {}; //sent to the db
-
-      $scope.centerOnMe()
-      .then(function (pos) {
-        console.log('centerOnMe returned and continued')
-        $scope.center = $scope.map.getCenter();
-        $scope.show(0);
-        $scope.placeUser();
-      });
-  };
-
-  $scope.centerOnMe = function () {
-    return $q(function(resolve, reject) {
-      if (!$scope.map) {
-        reject('No map loaded');
-      }
-
-      $ionicLoading.show({
-        template: '<i class="ion-loading-c"></i><div>Getting Location</div>',
-        animation: 'fade-in',
-        showBackdrop: false,
-        maxWidth: 200
-      });
-
-      navigator.geolocation.getCurrentPosition(function (pos) {
-        console.log('centerOnMe got pos', pos);
-        $rootScope.pos = pos;
-        $scope.map.setCenter(new google.maps.LatLng(pos.coords.latitude, pos.coords.longitude));
-        $ionicLoading.hide();
-        resolve(pos);
-      }, function (error) {
-        reject('Unable to get location: ' + error.message);
-      });
-    });
-  };
-
-
-  $scope.placeUser = function() {
-    console.log('placeUser called')
-    // get position if $rootScope.pos hasn't been set:
-    if (!$rootScope.pos) {
-      navigator.geolocation.getCurrentPosition(function (pos) {
-        $rootScope.pos = pos;
-        // format the position for the marker
-        $rootScope.latLng = new google.maps.LatLng($rootScope.pos.coords.latitude, pos.coords.longitude);
-        $scope.createUserMarker();
-      });
-    } else {
-      console.log('found rootScope.pos in placeUser:', $rootScope.pos);
-      $rootScope.latLng = new google.maps.LatLng($rootScope.pos.coords.latitude, $rootScope.pos.coords.longitude); 
-      $scope.createUserMarker();
-    }
-    $scope.watchId = navigator.geolocation.watchPosition($scope.moveUser); 
-  };
-
-
-  $scope.createUserMarker = function() {
-    console.log('Jaunty created');
-    $scope.userMarker = new google.maps.Marker({
-      position: $rootScope.latLng,
-      map: $scope.map,
-      title: 'You are here',
-      icon: '/img/jaunty_tiny.png',
-    });
-  };
-
-  $scope.moveUser = function() {
-    navigator.geolocation.getCurrentPosition(function (pos) {
-      $rootScope.pos = pos;
-      $rootScope.latLng = new google.maps.LatLng(pos.coords.latitude, pos.coords.longitude);
-      $scope.userMarker.setPosition(new google.maps.LatLng(pos.coords.latitude, pos.coords.longitude)); 
-    });
-    // Check for a stop nearby when you're within a jaunt started
-    // $scope.checkForStop();
-  };
-
-      // console.log('location updated: ' + $rootScope.pos);
-  $scope.checkForStop = function () {
-    // console.log($rootScope.pos);
-    var userX = $rootScope.pos.D;    // coords.longitude;
-    var userY = $rootScope.pos.k;    // coords.latitude;
-    // console.log('user location:', userX, userY);
-    // $scope.markers
-    for (var i = 0; i < $scope.markers.length; i++) {
-      var stopX = $scope.markers[i].position.D;
-      var stopY = $scope.markers[i].position.k;
-      // console.log('stopover location:', stopX, stopY);
-      var degreeDist = Math.sqrt( Math.pow( (userX - stopX), 2 ) + Math.pow( (userY - stopY), 2) ); 
-      // console.log('distance:', degreeDist);
-
-      var meterDist = Jaunts.degreesToMeters(degreeDist);
-      console.log('distance in meters:', meterDist);
-
-      if (meterDist < 40) {
-
-
-
-      }
-    }
-  };
-
-  //calls Jaunts.getAllPolys to receive an array of polylines; loops through to attach to map
-  $scope.show = function(index){
-
-    var query = {};
-    var coordinates = [$scope.center.lng(), $scope.center.lat()];
-    removeFromMap($scope.polys);
-    removeFromMap($scope.markers);
-
-    //if statement sets up the query.
-    if(index === 0){
-      query.start_location = {
-        coordinates: coordinates,
-        range: 1000
-      };
-    } else if(index === 1){
-      query.end_location = {
-        coordinates : coordinates,
-        range: 1000
-      };
-    } else if(index === 2){
-      console.log('do some stuff for choice 3');
-    }
-
-    for(var key in $scope.queryObj){
-      query[key] = $scope.queryObj[key];
-    }
-
-    //the db call
-
-    $ionicLoading.show({
-      template: '<i class="ion-loading-c"></i><div>Finding Jaunts</div>',
-      animation: 'fade-in',
-      showBackdrop: false,
-      maxWidth: 200,
-    });
-
-    hideMarkers();
-
-    Jaunts.selectJaunts(query).then(function(data) {
-      setTimeout( $ionicLoading.hide, 500);
-
-      $scope.jaunts = data.data;
-      //places on rootScope to persist across controllers
-      $rootScope.jaunts = data.data;
-      $scope.polys = Jaunts.getAllPolys($scope.jaunts);
-
-      addToMap($scope.polys);
-
-      showMarkers();
-
-    });
-
-  };
-
-
-  if (!$scope.map) {
-    $scope.initialize();
-  }
 })
-
-
-
-
-
 
 
 
