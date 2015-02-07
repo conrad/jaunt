@@ -14,14 +14,14 @@
         <div class="row">
           <div class="col">
             <h1>{{jaunt.meta.title}}</h1>
-            <p>
-                <div class="ion-ios7-timer ion-ios-timer">
-                  {{jaunt.duration.text}}
+            <div class="jaunt-mini-details">
+                <div class="fancies">
+                  <span><strong>Fancies:</strong> {{jaunt.meta.tags.join(' ')}}</span>
                 </div>
-                <p class="fancies">
-                  fancies: {{jaunt.meta.tags.join(', ')}}
-                </p>
-            </p>
+                <div class="duration ion-ios7-timer ion-ios-timer">
+                  <span>{{jaunt.duration.text}}</span>
+                </div>
+            </div>
           </div>
         </div>
 
