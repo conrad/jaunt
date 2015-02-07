@@ -79,18 +79,16 @@ angular.module('starter.controllers', [])
       $scope.userMarker.setPosition(new google.maps.LatLng(pos.coords.latitude, pos.coords.longitude));
     });
     // Check for a stop nearby when you're within a jaunt started
-    if ($scope.jauntStarted) {
-      $scope.checkForStop();
-    }
+    // if ($scope.jauntStarted) {
+      $scope.checkForStop();  
+    // }
   };
 
       // console.log('location updated: ' + $rootScope.pos);
   $scope.checkForStop = function () {
-    // console.log($rootScope.pos);
     var userX = $rootScope.pos.D;    // coords.longitude;
     var userY = $rootScope.pos.k;    // coords.latitude;
     var stopovers = $scope.selectedJaunt.stops;
-
     for (var i = 0; i < stopovers.length; i++) {
       var stopX = stopovers[i].location.coordinates[0];
       var stopY = stopovers[i].location.coordinates[1];
@@ -106,7 +104,6 @@ angular.module('starter.controllers', [])
         console.log("You've reached", stopovers[i].name);
 
         // TRIGGER NAVIGATE TO PLACE DETAIL PAGE WHEN WITHIN CERTAIN DISTANCE
-
         window.location = 'http://localhost:5000/#/tab/jaunts/'+stopovers[i].jauntID+'/'+stopovers[i]._id;
       }
     }
@@ -152,12 +149,6 @@ angular.module('starter.controllers', [])
 
 
   };
-
-
-
-
-
-
 
 
 
