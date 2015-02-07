@@ -1,6 +1,6 @@
 'use strict';
 
-angular.module('starter.controllers', [])
+angular.module('starter.controllers', ['ngSanitize'])
 
 
 
@@ -622,9 +622,12 @@ angular.module('starter.controllers', [])
 
 
 
-.controller('PlaceDetailCtrl', function($scope, $stateParams, Jaunts, $rootScope) {
+.controller('PlaceDetailCtrl', function($scope, $stateParams, Jaunts, $rootScope, $sce) {
 
   $scope.stop = Jaunts.getStop($rootScope.jaunts, $stateParams.jauntId, $stateParams.placeId);
+  console.log('$scope.stop.audioUrl');
+  console.log($scope.stop.audioUrl);
+  $scope.stop.audioUrl = $sce.trustAsResourceUrl($scope.stop.audioUrl);
 })
 
 
