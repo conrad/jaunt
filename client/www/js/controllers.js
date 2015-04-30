@@ -2,14 +2,11 @@
 
 angular.module('starter.controllers', ['ngSanitize'])
 
-
-
-
 .controller('MapCtrl', function($scope, $ionicLoading, $ionicActionSheet, $timeout, $ionicModal, Jaunts, $q, $rootScope) {
 
   $scope.initialize = function () {
 
-    console.log('latLng:', $rootScope.latLng);
+    // create the map by first setting map options
     var mapOptions = {
       center: new google.maps.LatLng(37.7833, -122.4167),
       zoom: 14,
@@ -22,14 +19,15 @@ angular.module('starter.controllers', ['ngSanitize'])
       styles: [{"featureType":"landscape.man_made","elementType":"geometry","stylers":[{"color":"#f7f1df"}]},{"featureType":"landscape.natural","elementType":"geometry","stylers":[{"color":"#d0e3b4"}]},{"featureType":"landscape.natural.terrain","elementType":"geometry","stylers":[{"visibility":"off"}]},{"featureType":"poi","elementType":"labels","stylers":[{"visibility":"off"}]},{"featureType":"poi.business","elementType":"all","stylers":[{"visibility":"off"}]},{"featureType":"poi.medical","elementType":"geometry","stylers":[{"color":"#fbd3da"}]},{"featureType":"poi.park","elementType":"geometry","stylers":[{"color":"#bde6ab"}]},{"featureType":"road","elementType":"geometry.stroke","stylers":[{"visibility":"off"}]},{"featureType":"road","elementType":"labels","stylers":[{"visibility":"off"}]},{"featureType":"road.highway","elementType":"geometry.fill","stylers":[{"color":"#ffe15f"}]},{"featureType":"road.highway","elementType":"geometry.stroke","stylers":[{"color":"#efd151"}]},{"featureType":"road.arterial","elementType":"geometry.fill","stylers":[{"color":"#ffffff"}]},{"featureType":"road.local","elementType":"geometry.fill","stylers":[{"color":"black"}]},{"featureType":"transit.station.airport","elementType":"geometry.fill","stylers":[{"color":"#cfb2db"}]},{"featureType":"water","elementType":"geometry","stylers":[{"color":"#a2daf2"}]}]
     };
 
+    // instantiate new map using the options above
     $scope.map = new google.maps.Map(document.getElementById("map"), mapOptions);
 
-    $scope.userMarker = {};
-    $scope.watchId = null;
-    $scope.polys = [];
-    $scope.markers = [];
-    $scope.stopovers = [];
-    $scope.infowindows = [];
+    $scope.userMarker = {};   // object to track and display user's location on map
+    $scope.watchId = null;    // variable needed for geolocation object to track location
+    $scope.polys = [];        // array of polylines showing tour route
+    $scope.markers = [];      // array of tour starting point markers
+    $scope.stopovers = [];    // array of stops on each tour
+    $scope.infowindows = [];  // array for pop-up windows of info for each tour
     $scope.index = 0;
     $scope.query = {};  //user queries
     $scope.queryObj = {}; //sent to the db
@@ -46,6 +44,7 @@ angular.module('starter.controllers', ['ngSanitize'])
   $scope.placeUser = function() {
     console.log('placeUser called')
     // get position if $rootScope.pos hasn't been set:
+      // NOTE: $rootScope used for persistence across controllers 
     if (!$rootScope.pos) {
       console.log('no $rootScope.pos found');
       navigator.geolocation.getCurrentPosition(function (pos) {
@@ -62,7 +61,6 @@ angular.module('starter.controllers', ['ngSanitize'])
     $scope.watchId = navigator.geolocation.watchPosition($scope.moveUser);
   };
 
-
   $scope.createUserMarker = function() {
     console.log('Jaunty created');
     $scope.userMarker = new google.maps.Marker({
@@ -73,6 +71,7 @@ angular.module('starter.controllers', ['ngSanitize'])
     });
   };
 
+  // called whenever HTML5 geolocation updates position
   $scope.moveUser = function() {
     navigator.geolocation.getCurrentPosition(function (pos) {
       $rootScope.pos = pos;
@@ -85,7 +84,7 @@ angular.module('starter.controllers', ['ngSanitize'])
     }
   };
 
-      // console.log('location updated: ' + $rootScope.pos);
+  // find out if a stop on the tour is nearby -- if tour started and user has moved
   $scope.checkForStop = function () {
     var userX = $rootScope.pos.D;    // coords.longitude;
     var userY = $rootScope.pos.k;    // coords.latitude;
@@ -110,6 +109,7 @@ angular.module('starter.controllers', ['ngSanitize'])
     }
   };
 
+  // toggle whether user is actively on tour
   $scope.triggerStatus = function(){
     if ($scope.jauntStatus === "Start Jaunt") {
       $scope.jauntStatus = "End Jaunt";
@@ -119,6 +119,7 @@ angular.module('starter.controllers', ['ngSanitize'])
     console.log($scope.jauntStatus);
   }
 
+
   $scope.jauntAction = function() {
     if($scope.selectedJaunt && $scope.jauntStatus === "Start Jaunt") {
       $scope.startJaunt();
@@ -127,39 +128,28 @@ angular.module('starter.controllers', ['ngSanitize'])
     }
   };
 
+  // set variables and map position when user begins tour
+  $scope.startJaunt = function() {
+    $scope.jauntStarted = true;
+    $scope.map.setZoom(16);
+    $scope.triggerStatus();
+    console.log('jaunt started');
+  };
+
+  // set variables and map position when user ends tour
   $scope.endJaunt = function() {
     $scope.jauntStarted = false;
     $scope.map.setZoom(14)
     $scope.triggerStatus();
     console.log("jaunt ended")
-  }
-
-  $scope.startJaunt = function() {
-    $scope.jauntStarted = true;
-    $scope.map.setZoom(16);
-    $scope.triggerStatus();
-
-    console.log('jaunt ended');
-    // console.log($scope.selectedJaunt);
-    // console.log(Jaunts);          // refers to service with a bunch of methods
-    // console.log($scope.jaunts);   // array of jaunts - clear this.
-    // console.log($scope.markers);
-
-
-    // window.location = 'http://localhost:5000/#/tab/jaunts/'+$scope.selectedJaunt._id+'/54cac95c4e0a367a35de5c80';
   };
-
-
-
-
-
-
 
   $scope.clickCrosshairs = function (){
     $scope.center = $scope.map.getCenter();
-    $scope.show(  $scope.index);
+    $scope.show($scope.index);
   };
 
+  // method to set map location based on user location
   $scope.centerOnMe = function () {
     return $q(function(resolve, reject) {
       if (!$scope.map) {
@@ -184,34 +174,6 @@ angular.module('starter.controllers', ['ngSanitize'])
     });
   };
 
-  /*// adjust from global scope? Popover for new users?
-  $scope.search = 'jaunts near me!';
-
-  // adds Action Sheet for simple search
-  $scope.showSearch = function() {
-
-    // Show action sheet
-    var hideSearch = $ionicActionSheet.show({
-      buttons: [
-        {text: 'jaunts near me!'},
-        {text: 'jaunts to a location!'},
-        {text: 'option 3!'}
-      ],
-      titleText: "<b>What do you fancy?<b>",
-      buttonClicked: function(index, choice) {
-        $scope.search = choice.text;
-        $scope.index = index;
-        $scope.show($scope.index);
-        return true;
-      }
-    });
-
-    // Hide sheet after three seconds
-    $timeout(function() {
-      hideSearch();
-    }, 3000);
-  };*/
-
 
   //calls Jaunts.getAllPolys to receive an array of polylines; loops through to attach to map
   $scope.show = function(index){
@@ -232,15 +194,14 @@ angular.module('starter.controllers', ['ngSanitize'])
         coordinates : coordinates,
         range: 1000
       };
-    } else if(index === 2){
-      console.log('do some stuff for choice 3');
-    }
+    } // else if(index === 2){              // choice inactive as of now
+      // console.log('do some stuff for choice 3');
+    // }
 
+    //the db call
     for(var key in $scope.queryObj){
       query[key] = $scope.queryObj[key];
     }
-
-    //the db call
 
     $ionicLoading.show({
       template: '<i class="ion-loading-c"></i><div>Finding Jaunts</div>',
@@ -309,8 +270,8 @@ angular.module('starter.controllers', ['ngSanitize'])
             ' votes</small>' +
             '</a>' +
             '</div>' /* closes infoW container*/;
-    return contentString
-  }
+    return contentString;
+  };
   var stopoverContentString = function(jauntID, id, title) {
     var contentString = '<div class="infoW">'+
             '<a href="/#/tab/jaunts/' +
@@ -321,8 +282,8 @@ angular.module('starter.controllers', ['ngSanitize'])
             '</h5>' +
             '</a>' +
             '</div>' /* closes infoW container*/;
-    return contentString
-  }
+    return contentString;
+  };
 
   var getJauntInfoForWindow = function(jaunt) {
     return [jaunt._id, jaunt.meta.title, Math.round(jaunt.meta.rating), jaunt.meta.votes];
@@ -333,9 +294,8 @@ angular.module('starter.controllers', ['ngSanitize'])
         content: startContentString.apply(null, getJauntInfoForWindow(jaunt)),
         pixelOffset: new google.maps.Size(0, -60)
     });
-    return infowindow
-  }
-
+    return infowindow;
+  };
 
   var createStartMarker = function(jaunt) {
     var startIcon = '/img/star.png'
@@ -376,6 +336,7 @@ angular.module('starter.controllers', ['ngSanitize'])
 
     var connectWindowAndMarker = function(marker, infowindow) {
       google.maps.event.addListener(marker, 'click', function(event) {
+        // stop animation of other markers
         $scope.markers.forEach(function(otherMarker) {
           if (otherMarker !== marker) {
             otherMarker.setAnimation(null);
