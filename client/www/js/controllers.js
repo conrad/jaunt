@@ -2,6 +2,10 @@
 
 angular.module('starter.controllers', ['ngSanitize'])
 
+//////////////////////////////
+// MAP PAGE CONTROLLER
+//////////////////////////////
+
 .controller('MapCtrl', function($scope, $ionicLoading, $ionicActionSheet, $timeout, $ionicModal, Jaunts, $q, $rootScope) {
 
   $scope.initialize = function () {
@@ -89,6 +93,7 @@ angular.module('starter.controllers', ['ngSanitize'])
     var userX = $rootScope.pos.D;    // coords.longitude;
     var userY = $rootScope.pos.k;    // coords.latitude;
     var stopovers = $scope.selectedJaunt.stops;
+
     for (var i = 0; i < stopovers.length; i++) {
       var stopX = stopovers[i].location.coordinates[0];
       var stopY = stopovers[i].location.coordinates[1];
@@ -104,6 +109,7 @@ angular.module('starter.controllers', ['ngSanitize'])
         console.log("You've reached", stopovers[i].name);
 
         // TRIGGER NAVIGATE TO PLACE DETAIL PAGE WHEN WITHIN CERTAIN DISTANCE
+
         window.location = 'http://localhost:5000/#/tab/jaunts/'+stopovers[i].jauntID+'/'+stopovers[i]._id;
       }
     }
@@ -531,7 +537,9 @@ angular.module('starter.controllers', ['ngSanitize'])
 })
 
 
-
+//////////////////////////////
+// JAUNTS LIST PAGE CONTROLLER
+//////////////////////////////
 
 .controller('JauntsCtrl', function($scope, Jaunts, $ionicModal, $rootScope) {
 // console.log('rootscope jaunts',$rootScope.jaunts);
@@ -567,14 +575,19 @@ angular.module('starter.controllers', ['ngSanitize'])
 })
 
 
-
-
+////////////////////////////////////////
+// JAUNT INFO PAGE CONTROLLER
+////////////////////////////////////////
 
 .controller('JauntDetailCtrl', function($scope, $stateParams, Jaunts, $rootScope) {
   $scope.jaunt = Jaunts.getJaunt($rootScope.jaunts, $stateParams.jauntId);
 })
 
 
+
+////////////////////////////////////////
+//  NAVIGATION PAGE CONTROLLER
+////////////////////////////////////////
 
 .controller('NavigateCtrl', function($scope, $ionicLoading, $ionicActionSheet, $timeout, $ionicModal, Jaunts, $q, $rootScope) {
 
@@ -583,6 +596,10 @@ angular.module('starter.controllers', ['ngSanitize'])
 
 
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 2970742fee0a8149cd7023325c051846e34d8992
 .controller('PlaceDetailCtrl', function($scope, $stateParams, Jaunts, $rootScope) {
 
   $scope.stop = Jaunts.getStop($rootScope.jaunts, $stateParams.jauntId, $stateParams.placeId);
